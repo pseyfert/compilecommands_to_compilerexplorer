@@ -53,6 +53,7 @@ func main() {
 	p.Project = strings.ToUpper(p.Project)
 
 	fmt.Println(colon_separate(parse_and_generate(p, nightlyroot, cmtconfig)))
+	create(p)
 }
 
 func colon_separate(stringset map[string]bool) string {
