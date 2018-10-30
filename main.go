@@ -52,10 +52,24 @@ func main() {
 	flag.Parse()
 	p.Project = strings.ToUpper(p.Project)
 
-	fmt.Println(parse_and_generate(p, nightlyroot, cmtconfig))
+	fmt.Println(colon_separate(parse_and_generate(p, nightlyroot, cmtconfig)))
 }
 
-func parse_and_generate(p Project, nightlyroot, cmtconfig string) string {
+func colon_separate(stringset map[string]bool) string {
+	var retval string
+	addseparator := false
+	for k, _ := range stringset {
+		if addseparator {
+			retval += ":"
+		} else {
+			addseparator = true
+		}
+		retval += k
+	}
+	return retval
+}
+
+func parse_and_generate(p Project, nightlyroot, cmtconfig string) map[string]bool {
 
 	installarea := filepath.Join(
 		nightlyroot,
@@ -103,16 +117,5 @@ func parse_and_generate(p Project, nightlyroot, cmtconfig string) string {
 
 		}
 	}
-
-	var retval string
-	addseparator := false
-	for k, _ := range stringset {
-		if addseparator {
-			retval += ":"
-		} else {
-			addseparator = true
-		}
-		retval += k
-	}
-	return retval
+	return stringset
 }

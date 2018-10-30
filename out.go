@@ -25,5 +25,5 @@ func create(p Project) {
 	fmt.Fprintf(f, "libs.%s.name=%s\n", strings.ToLower(p.Project), strings.ToUpper(p.Project))
 	fmt.Fprintf(f, "libs.%s.versions=%s\n", strings.ToLower(p.Project), p.ConfVersion())
 	fmt.Fprintf(f, "libs.%s.versions.%s.version=%s\n", strings.ToLower(p.Project), p.ConfVersion(), p.ConfVersion())
-	fmt.Fprintf(f, "libs.%s.versions.%s.path=%s\n", strings.ToLower(p.Project), p.ConfVersion(), parse_and_generate(p, nightlyroot, cmtconfig))
+	fmt.Fprintf(f, "libs.%s.versions.%s.path=%s\n", strings.ToLower(p.Project), p.ConfVersion(), colon_separate(parse_and_generate(p, nightlyroot, cmtconfig)))
 }
