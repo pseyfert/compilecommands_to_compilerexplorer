@@ -22,6 +22,10 @@ import (
 )
 
 func create(ps []Project) {
+	if len(ps) == 0 {
+		log.Print("no project?")
+		os.Exit(8)
+	}
 	unique_project_names := make(map[string]bool)
 	for _, p := range ps {
 		unique_project_names[strings.ToLower(p.Project)] = true
@@ -57,7 +61,7 @@ func create(ps []Project) {
 			var versions []string
 			for j := i; j < len(ps); j++ {
 				if ps[j].Project == p.Project {
-					versions = append(versions, ps[j].Version)
+					versions = append(versions, ps[j].ConfVersion())
 				}
 			}
 			if _, err := fmt.Fprintf(f, "libs.%s.name=%s\n", strings.ToLower(p.Project), strings.ToLower(p.Project)); err != nil {
@@ -87,7 +91,7 @@ func create(ps []Project) {
 			}
 		}
 		pr("version", p.ConfVersion())
-		pr("path", colonSeparateMap(parse_and_generate(p, nightlyroot, cmtconfig)))
+		pr("path", colonSeparateMap(p.IncludeMap))
 	}
 	if err := f.CloseAtomicallyReplace(); err != nil {
 		log.Printf("writing c++.local.properties: %v", err)

@@ -13,36 +13,28 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
 type Project struct {
-	Slot    string
-	Day     string
-	Project string
-	Version string
+	Slot       string
+	Day        string
+	Project    string
+	Version    string
+	IncludeMap map[string]bool
 }
 
 func (p *Project) ConfVersion() string {
 	return p.Slot + "/" + p.Day + "/" + p.Version
 }
 
-type translationunit struct {
-	Builddir string `json:"directory"`
-	Command  string `json:"command"`
-	File     string `json:"file"`
-}
-
 var cmtconfig, nightlyroot string
 
-func main() {
+func cli() {
 	var p Project
 	flag.StringVar(&p.Slot, "slot", "lhcb-head", "nightlies slot (i.e. directory in /cvmfs/lhcbdev.cern.ch/nightlies/)")
 	flag.StringVar(&p.Day, "day", "Today", "day/buildID (i.e. subdirectory, such as 'Today', 'Mon', or '2032')")
@@ -52,83 +44,55 @@ func main() {
 	flag.StringVar(&nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.Parse()
 	p.Project = strings.ToUpper(p.Project)
+	incs, err := parse_and_generate(p, nightlyroot, cmtconfig)
+	if err != nil {
+		log.Printf("couldn't read json: %v", err)
+		os.Exit(1)
+	}
 
-	fmt.Println(colonSeparateMap(parse_and_generate(p, nightlyroot, cmtconfig)))
+	p.IncludeMap = incs
+
+	fmt.Println(colonSeparateMap(p.IncludeMap))
 	create([]Project{p})
 }
 
-func colonSeparateArray(stringset []string) string {
-	var retval string
-	for i, s := range stringset {
-		if i != 0 {
-			retval += ":"
-		}
-		retval += s
-	}
-	return retval
-}
+func main() {
+	days := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Today"}
+	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
+	top_projects := []string{"Brunel", "Gaudi"}
+	versions := []string{"HEAD"}
+	flag.StringVar(&cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
+	flag.StringVar(&nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
+	flag.Parse()
 
-func colonSeparateMap(stringset map[string]bool) string {
-	var retval string
-	addseparator := false
-	for k, _ := range stringset {
-		if addseparator {
-			retval += ":"
-		} else {
-			addseparator = true
-		}
-		retval += k
-	}
-	return retval
-}
+	projects := []Project{}
 
-func parse_and_generate(p Project, nightlyroot, cmtconfig string) map[string]bool {
-
-	installarea := filepath.Join(
-		nightlyroot,
-		p.Slot,
-		p.Day,
-		p.Project,
-		p.Project+"_"+p.Version,
-		"InstallArea",
-		cmtconfig)
-
-	jsonFile, err := os.Open(filepath.Join(installarea, "compile_commands.json"))
-
-	if err != nil {
-		log.Printf("opening compile_commands: %v", err)
-		os.Exit(1)
-	}
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var db []translationunit
-	json.Unmarshal(byteValue, &db)
-
-	stringset := make(map[string]bool)
-	stringset[filepath.Join(installarea, "/include")] = true
-
-	for _, tu := range db {
-		words := strings.Fields(tu.Command)
-		for j, w := range words {
-			var inc string
-			if w[0:2] == "-I" {
-				inc = w[2:len(w)]
+	for _, day := range days {
+		for _, slot := range slots {
+			for _, top_project := range top_projects {
+				for _, version := range versions {
+					var p Project
+					p.Slot = slot
+					p.Day = day
+					p.Project = strings.ToUpper(top_project)
+					p.Version = version
+					incs, err := parse_and_generate(p, nightlyroot, cmtconfig)
+					if err != nil {
+						if err.ReadError != nil {
+							log.Printf("read error: %v", err.ReadError)
+							// probably this slot doesn't exist on cvmfs (not set up for publication, or build failed)
+							// just skip
+						} else {
+							log.Printf("%v", err)
+							os.Exit(7)
+						}
+					} else {
+						p.IncludeMap = incs
+						projects = append(projects, p)
+					}
+				}
 			}
-			if w == "-isystem" {
-				inc = words[j+1]
-			}
-			if strings.HasPrefix(inc, "/cvmfs") {
-				stringset[inc] = true
-			} else if strings.Contains(inc, "InstallArea") {
-				stringset[strings.Replace(inc, "/workspace/build/", filepath.Join(nightlyroot, p.Slot, p.Day), 1)] = true
-			} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.Project, p.Project+"_"+p.Version)) {
-				// should be fine, I hope
-			} else if inc != "" {
-				log.Printf("could not handle compiler argument %s", inc)
-				os.Exit(2)
-			}
-
 		}
 	}
-	return stringset
+	create(projects)
 }
