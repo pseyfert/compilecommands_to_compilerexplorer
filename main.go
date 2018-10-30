@@ -22,29 +22,47 @@ import (
 	"strings"
 )
 
+type Project struct {
+	Slot    string
+	Day     string
+	Project string
+	Version string
+}
+
+func (p *Project) ConfVersion() string {
+	return p.Slot + "/" + p.Day + "/" + p.Version
+}
+
 type translationunit struct {
 	Builddir string `json:"directory"`
 	Command  string `json:"command"`
 	File     string `json:"file"`
 }
 
+var cmtconfig, nightlyroot string
+
 func main() {
-	var slot, day, project, version, cmtconfig, nightlyroot string
-	flag.StringVar(&slot, "slot", "lhcb-head", "nightlies slot (i.e. directory in /cvmfs/lhcbdev.cern.ch/nightlies/)")
-	flag.StringVar(&day, "day", "Today", "day/buildID (i.e. subdirectory, such as 'Today', 'Mon', or '2032')")
-	flag.StringVar(&project, "project", "Brunel", "project (such as Rec, Brunel, LHCb, Lbcom)")
-	flag.StringVar(&version, "version", "HEAD", "version (i.e. the stuff after the underscore like HEAD or 2016-patches)")
+	var p Project
+	flag.StringVar(&p.Slot, "slot", "lhcb-head", "nightlies slot (i.e. directory in /cvmfs/lhcbdev.cern.ch/nightlies/)")
+	flag.StringVar(&p.Day, "day", "Today", "day/buildID (i.e. subdirectory, such as 'Today', 'Mon', or '2032')")
+	flag.StringVar(&p.Project, "project", "Brunel", "project (such as Rec, Brunel, LHCb, Lbcom)")
+	flag.StringVar(&p.Version, "version", "HEAD", "version (i.e. the stuff after the underscore like HEAD or 2016-patches)")
 	flag.StringVar(&cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.Parse()
-	project = strings.ToUpper(project)
+	p.Project = strings.ToUpper(p.Project)
+
+	fmt.Println(parse_and_generate(p, nightlyroot, cmtconfig))
+}
+
+func parse_and_generate(p Project, nightlyroot, cmtconfig string) string {
 
 	installarea := filepath.Join(
 		nightlyroot,
-		slot,
-		day,
-		project,
-		project+"_"+version,
+		p.Slot,
+		p.Day,
+		p.Project,
+		p.Project+"_"+p.Version,
 		"InstallArea",
 		cmtconfig)
 
@@ -75,8 +93,8 @@ func main() {
 			if strings.HasPrefix(inc, "/cvmfs") {
 				stringset[inc] = true
 			} else if strings.Contains(inc, "InstallArea") {
-				stringset[strings.Replace(inc, "/workspace/build/", filepath.Join(nightlyroot, slot, day), 1)] = true
-			} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", project, project+"_"+version)) {
+				stringset[strings.Replace(inc, "/workspace/build/", filepath.Join(nightlyroot, p.Slot, p.Day), 1)] = true
+			} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.Project, p.Project+"_"+p.Version)) {
 				// should be fine, I hope
 			} else if inc != "" {
 				fmt.Print("could not handle %s\n", inc)
@@ -86,13 +104,15 @@ func main() {
 		}
 	}
 
+	var retval string
 	addseparator := false
 	for k, _ := range stringset {
 		if addseparator {
-			fmt.Print(":")
+			retval += ":"
 		} else {
 			addseparator = true
 		}
-		fmt.Print(k)
+		retval += k
 	}
+	return retval
 }
