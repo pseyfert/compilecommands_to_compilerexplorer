@@ -53,11 +53,22 @@ func main() {
 	flag.Parse()
 	p.Project = strings.ToUpper(p.Project)
 
-	fmt.Println(colon_separate(parse_and_generate(p, nightlyroot, cmtconfig)))
-	create(p)
+	fmt.Println(colonSeparateMap(parse_and_generate(p, nightlyroot, cmtconfig)))
+	create([]Project{p})
 }
 
-func colon_separate(stringset map[string]bool) string {
+func colonSeparateArray(stringset []string) string {
+	var retval string
+	for i, s := range stringset {
+		if i != 0 {
+			retval += ":"
+		}
+		retval += s
+	}
+	return retval
+}
+
+func colonSeparateMap(stringset map[string]bool) string {
 	var retval string
 	addseparator := false
 	for k, _ := range stringset {
