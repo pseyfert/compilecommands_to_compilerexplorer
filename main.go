@@ -17,6 +17,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -84,7 +85,7 @@ func parse_and_generate(p Project, nightlyroot, cmtconfig string) map[string]boo
 	jsonFile, err := os.Open(filepath.Join(installarea, "compile_commands.json"))
 
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("opening compile_commands: %v", err)
 		os.Exit(1)
 	}
 	defer jsonFile.Close()
@@ -112,7 +113,7 @@ func parse_and_generate(p Project, nightlyroot, cmtconfig string) map[string]boo
 			} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.Project, p.Project+"_"+p.Version)) {
 				// should be fine, I hope
 			} else if inc != "" {
-				fmt.Print("could not handle %s\n", inc)
+				log.Printf("could not handle compiler argument %s", inc)
 				os.Exit(2)
 			}
 

@@ -1,10 +1,24 @@
+/*
+ * Copyright (C) 2018  CERN for the benefit of the LHCb collaboration
+ * Author: Paul Seyfert <pseyfert@cern.ch>
+ *
+ * This software is distributed under the terms of the GNU General Public
+ * Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
+ *
+ * In applying this licence, CERN does not waive the privileges and immunities
+ * granted to it by virtue of its status as an Intergovernmental Organization
+ * or submit itself to any jurisdiction.
+ */
+
 package main
 
 import (
 	"fmt"
-	write "github.com/google/go-write"
+	"log"
 	"os"
 	"strings"
+
+	write "github.com/google/go-write"
 )
 
 func create(p Project) {
@@ -25,12 +39,12 @@ func create(p Project) {
 	// ```
 	pr := func(s string) {
 		if _, err := fmt.Fprintf(f, "libs.%s.%s\n", strings.ToLower(p.Project), s); err != nil {
-			fmt.Print(err.Error())
+			log.Printf("adding %s to configuration: %v", s, err)
 			os.Exit(5)
 		}
 	}
 	if _, err := fmt.Fprintf(f, "libs=%s\n", strings.ToLower(p.Project)); err != nil {
-		fmt.Print(err.Error())
+		log.Printf("assembling project %s to c++.local.properties: %v", p.Project, err)
 		os.Exit(5)
 	}
 	pr("name=" + strings.ToUpper(p.Project))
@@ -39,7 +53,7 @@ func create(p Project) {
 	pr("versions." + p.ConfVersion() + ".path=" + colon_separate(parse_and_generate(p, nightlyroot, cmtconfig)))
 
 	if err := f.CloseAtomicallyReplace(); err != nil {
-		fmt.Print(err.Error())
+		log.Printf("writing c++.local.properties: %v", err)
 		os.Exit(6)
 	}
 }
