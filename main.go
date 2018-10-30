@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -28,16 +29,27 @@ type translationunit struct {
 }
 
 func main() {
-	var slot, day, project, version, cmtconfig string
+	var slot, day, project, version, cmtconfig, nightlyroot string
 	flag.StringVar(&slot, "slot", "lhcb-head", "nightlies slot (i.e. directory in /cvmfs/lhcbdev.cern.ch/nightlies/)")
 	flag.StringVar(&day, "day", "Today", "day/buildID (i.e. subdirectory, such as 'Today', 'Mon', or '2032')")
 	flag.StringVar(&project, "project", "Brunel", "project (such as Rec, Brunel, LHCb, Lbcom)")
 	flag.StringVar(&version, "version", "HEAD", "version (i.e. the stuff after the underscore like HEAD or 2016-patches)")
 	flag.StringVar(&cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
+	flag.StringVar(&nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.Parse()
 	project = strings.ToUpper(project)
 
-	jsonFile, err := os.Open("/cvmfs/lhcbdev.cern.ch/nightlies/" + slot + "/" + day + "/" + project + "/" + project + "_" + version + "/InstallArea/" + cmtconfig + "/compile_commands.json")
+	installarea := filepath.Join(
+		nightlyroot,
+		slot,
+		day,
+		project,
+		project+"_"+version,
+		"InstallArea",
+		cmtconfig)
+
+	jsonFile, err := os.Open(filepath.Join(installarea, "compile_commands.json"))
+
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -48,7 +60,7 @@ func main() {
 	json.Unmarshal(byteValue, &db)
 
 	stringset := make(map[string]bool)
-	stringset["/cvmfs/lhcbdev.cern.ch/nightlies/"+slot+"/"+day+"/"+project+"/"+project+"_"+version+"/InstallArea/"+cmtconfig+"/include"] = true
+	stringset[filepath.Join(installarea, "/include")] = true
 
 	for _, tu := range db {
 		words := strings.Fields(tu.Command)
@@ -63,8 +75,8 @@ func main() {
 			if strings.HasPrefix(inc, "/cvmfs") {
 				stringset[inc] = true
 			} else if strings.Contains(inc, "InstallArea") {
-				stringset[strings.Replace(inc, "/workspace/build/", "/cvmfs/lhcbdev.cern.ch/nightlies/"+slot+"/"+day+"/", 1)] = true
-			} else if strings.HasPrefix(inc, "/workspace/build/"+project+"/"+project+"_"+version) {
+				stringset[strings.Replace(inc, "/workspace/build/", filepath.Join(nightlyroot, slot, day), 1)] = true
+			} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", project, project+"_"+version)) {
 				// should be fine, I hope
 			} else if inc != "" {
 				fmt.Print("could not handle %s\n", inc)
@@ -83,5 +95,4 @@ func main() {
 		}
 		fmt.Print(k)
 	}
-
 }
