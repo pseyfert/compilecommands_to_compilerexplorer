@@ -14,7 +14,7 @@
 // extract a union (over all translation units) of all include paths given to
 // the compiler.
 
-package main
+package cc2ce
 
 import (
 	"encoding/json"

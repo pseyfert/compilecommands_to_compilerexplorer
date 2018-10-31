@@ -10,9 +10,9 @@
  * or submit itself to any jurisdiction.
  */
 
-package main
+package cc2ce
 
-func colonSeparateArray(stringset []string) string {
+func ColonSeparateArray(stringset []string) string {
 	var retval string
 	for i, s := range stringset {
 		if i != 0 {
@@ -23,7 +23,7 @@ func colonSeparateArray(stringset []string) string {
 	return retval
 }
 
-func colonSeparateMap(stringset map[string]bool) string {
+func ColonSeparateMap(stringset map[string]bool) string {
 	var retval string
 	addseparator := false
 	for k, _ := range stringset {
