@@ -10,7 +10,7 @@
  * or submit itself to any jurisdiction.
  */
 
-package cc2ce
+package cc2ce4lhcb
 
 import (
 	"fmt"
@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	write "github.com/google/go-write"
+	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce"
 )
 
 func Create(ps []Project) {
@@ -30,7 +31,7 @@ func Create(ps []Project) {
 	for _, p := range ps {
 		unique_project_names[strings.ToLower(p.Project)] = true
 	}
-	project_names := ColonSeparateMap(unique_project_names)
+	project_names := cc2ce.ColonSeparateMap(unique_project_names)
 
 	f, err := write.TempFile("", "./c++.local.properties")
 	if err != nil {
@@ -73,7 +74,7 @@ func Create(ps []Project) {
 				os.Exit(5)
 			}
 
-			output_versions := ColonSeparateArray(versions)
+			output_versions := strings.Join(versions, ":")
 			if _, err := fmt.Fprintf(f, "libs.%s.versions=%s\n", strings.ToLower(p.Project), output_versions); err != nil {
 				log.Printf("writing project %s versions %v to c++.local.properties: %v", strings.ToLower(p.Project), output_versions, err)
 				os.Exit(5)
@@ -91,7 +92,7 @@ func Create(ps []Project) {
 			}
 		}
 		pr("version", p.ConfVersion())
-		pr("path", ColonSeparateMap(p.IncludeMap))
+		pr("path", cc2ce.ColonSeparateMap(p.IncludeMap))
 	}
 	if err := f.CloseAtomicallyReplace(); err != nil {
 		log.Printf("writing c++.local.properties: %v", err)

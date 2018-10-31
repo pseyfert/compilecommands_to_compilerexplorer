@@ -14,12 +14,14 @@
 // how I want to treat them in our compiler explorer instance.
 // Non-LHCb users should not need anything from this file.
 
-package cc2ce
+package cc2ce4lhcb
 
 import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce"
 )
 
 // Filter_LHCb_includes removes or manipulates include paths from a
@@ -71,10 +73,19 @@ func installarea(p Project) string {
 		Cmtconfig)
 }
 
+func (p *Project) GenerateIncludes() error {
+	incs, err := Parse_and_generate(*p, Nightlyroot, Cmtconfig)
+	if err != nil {
+		return err
+	}
+	p.IncludeMap = incs
+	return nil
+}
+
 func Parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 
-	unfiltered, err := ParseJsonByFilename(installarea(p))
+	unfiltered, err := cc2ce.ParseJsonByFilename(installarea(p))
 	if err != nil {
 		return stringset, err
 	}
@@ -87,6 +98,15 @@ func Parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bo
 	return filtered, nil
 }
 
+// Wrapper of what should become one version of a library in Compiler-Explorer.
+// Given the installation of nightlies on cvmfs, this is defined by the
+// architecture, slot, day (or build), project name and version.
+//
+// * Version is usually HEAD.
+// * Project must be all upper case
+// * Day is the number of the build as string, or the shorthand symlink name (e.g. "Today")
+// * Slot is the slot of the nightly build system (e.g. lhcb-head or lhcb-gaudi-head)
+// * IncludeMap is the quasi-set of all include paths (the installed ones and the dependencies)
 type Project struct {
 	Slot       string
 	Day        string
@@ -99,4 +119,8 @@ func (p *Project) ConfVersion() string {
 	return p.Slot + "/" + p.Day + "/" + p.Version
 }
 
-var Cmtconfig, Nightlyroot string
+// The current platform, e.g. "x86_64-centos7-gcc7-opt"
+var Cmtconfig string
+
+// The installation of nightlies, i.e. "/cvmfs/lhcbdev.cern.ch/nightlies"
+var Nightlyroot string

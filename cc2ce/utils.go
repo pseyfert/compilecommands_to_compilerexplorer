@@ -12,27 +12,30 @@
 
 package cc2ce
 
+import (
+	"bytes"
+	"strings"
+)
+
+// Convert a quasi-set of strings (a map[string]bool) into a colon separated string.
+// Only the map keys are considered, values are ignored.
+// This is equivalent to strings.Join(stringset, ":").
 func ColonSeparateArray(stringset []string) string {
-	var retval string
-	for i, s := range stringset {
-		if i != 0 {
-			retval += ":"
-		}
-		retval += s
-	}
-	return retval
+	return strings.Join(stringset, ":")
 }
 
+// Convert a quasi-set of strings (a map[string]bool) into a colon separated string.
+// Only the map keys are considered, values are ignored.
 func ColonSeparateMap(stringset map[string]bool) string {
-	var retval string
+	var b bytes.Buffer
 	addseparator := false
 	for k, _ := range stringset {
 		if addseparator {
-			retval += ":"
+			b.WriteString(":")
 		} else {
 			addseparator = true
 		}
-		retval += k
+		b.WriteString(k)
 	}
-	return retval
+	return b.String()
 }
