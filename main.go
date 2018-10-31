@@ -78,9 +78,9 @@ func main() {
 					p.Version = version
 					incs, err := parse_and_generate(p, nightlyroot, cmtconfig)
 					if err != nil {
-						if err.ReadError != nil {
-							log.Printf("read error: %v", err.ReadError)
-							// probably this slot doesn't exist on cvmfs (not set up for publication, or build failed)
+						if os.IsNotExist(err) {
+							log.Printf("configuration doesn't exist: %v", err)
+							// this slot doesn't exist on cvmfs (not set up for publication, or build failed)
 							// just skip
 						} else {
 							log.Printf("%v", err)

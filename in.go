@@ -27,19 +27,7 @@ type translationunit struct {
 	File     string `json:"file"`
 }
 
-type ParseError struct {
-	ReadError *os.PathError
-	message   string
-}
-
-func (e *ParseError) Error() string {
-	if e.ReadError != nil {
-		return e.ReadError.Error()
-	}
-	return "Undefined Error"
-}
-
-func parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bool, *ParseError) {
+func parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 
 	installarea := filepath.Join(
@@ -54,11 +42,7 @@ func parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bo
 	jsonFile, err := os.Open(filepath.Join(installarea, "compile_commands.json"))
 
 	if err != nil {
-		if patherr, ok := err.(*os.PathError); ok {
-			return stringset, &ParseError{ReadError: patherr, message: ""}
-		} else {
-			return stringset, &ParseError{ReadError: nil, message: err.Error()}
-		}
+		return stringset, err
 	}
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
