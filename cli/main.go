@@ -45,18 +45,18 @@ func cli() {
 }
 
 func main() {
-	days := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Today"}
+	days := []string{"Today", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
 	top_projects := []string{"Brunel", "Gaudi"}
-	versions := []string{"HEAD"}
+	versions := []string{"HEAD", "master"}
 	flag.StringVar(&cc2ce4lhcb.Cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.Parse()
 
 	projects := []cc2ce4lhcb.Project{}
 
-	for _, day := range days {
-		for _, slot := range slots {
+	for _, slot := range slots {
+		for _, day := range days {
 			for _, top_project := range top_projects {
 				for _, version := range versions {
 					var p cc2ce4lhcb.Project
