@@ -17,7 +17,9 @@
 package cc2ce
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -30,13 +32,14 @@ type translationunit struct {
 	File     string `json:"file"`
 }
 
-// ParseJsonByBytes parses json provided as []byte (and is called by
+// IncludesFromJsonByBytes parses json provided as []byte (and is called by
 // ParseJsonByFilename). It collects all include paths given in the form
 // `-Isomepath` and `-isystem somepath`.
+//
 // The return is a quasi-'set' of strings: a map string -> bool.  All bools are
 // true. An include path is present in the compile_commands if and only if it
 // is present as key in the map.
-func ParseJsonByBytes(inFileContent []byte) (map[string]bool, error) {
+func IncludesFromJsonByBytes(inFileContent []byte) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 	var db []translationunit
 	json.Unmarshal(inFileContent, &db)
@@ -57,11 +60,63 @@ func ParseJsonByBytes(inFileContent []byte) (map[string]bool, error) {
 	return stringset, nil
 }
 
+// Attempt to get compiler options from the compile_commands.json. On a pure
+// luck based approach, the compile command of the first translation unit is
+// used to extract -W, -m, -f, -p, -std, -O, and -D settings.  These may well
+// differ from one translation unit to the other.
+//
+// The -D options are filtered based on what I found not useful in LHCb
+// projects.
+func OptionsFromJsonByBytes(inFileContent []byte) (string, error) {
+	var b bytes.Buffer
+	var db []translationunit
+	json.Unmarshal(inFileContent, &db)
+
+	for _, tu := range db {
+		words := strings.Fields(tu.Command)
+		for _, w := range words {
+			if strings.HasPrefix(w, "-D") {
+				if strings.HasSuffix(w, "EXPORTS") {
+					continue
+				} else if w == "-DPACKAGE_NAME" {
+					b.WriteString("-DPACKAGE_NAME=\"CompilerExplorer\"")
+				} else if w == "-DPACKAGE_VERSION" {
+					b.WriteString("-DPACKAGE_VERSION=\"v0r0\"")
+				} else if w == "-DGAUDI_LINKER_LIBRARY" {
+					continue
+				} else {
+					// In the .json I often see -Dsomevar=\\\"someval\\\"
+					// For the .properties this needs to be -Dsomevar="someval" with all backslashes gone
+					b.WriteString(strings.Replace(w, "\\\\\\\"", "\"", 2))
+				}
+			} else if strings.HasPrefix(w, "-p") {
+				b.WriteString(w)
+			} else if strings.HasPrefix(w, "-O") {
+				b.WriteString(w)
+			} else if strings.HasPrefix(w, "-m") {
+				b.WriteString(w)
+			} else if strings.HasPrefix(w, "-f") {
+				b.WriteString(w)
+			} else if strings.HasPrefix(w, "-W") {
+				b.WriteString(w)
+			} else if strings.HasPrefix(w, "-std") {
+				b.WriteString(w)
+			} else {
+				continue
+			}
+			b.WriteString(" ")
+		}
+		return b.String(), nil
+	}
+	return "", fmt.Errorf("no translation units found")
+}
+
 // ParseJsonByFilename opens a compile_commands.json file and passes it to
-// ParseJsonByBytes to get the union of all include paths. If the argument ends
-// on "compile_commands.json", it is assumed to be the path to the
-// compile_commands.json file. Otherwise, it is assumed to be the directory
+// IncludesFromJsonByBytes to get the union of all include paths. If the
+// argument ends on "compile_commands.json", it is assumed to be the path to
+// the compile_commands.json file. Otherwise, it is assumed to be the directory
 // containing the compile_commands.json file.
+//
 // The return is a quasi-'set' of strings: a map string -> bool.  All bools are
 // true. An include path is present in the compile_commands if and only if it
 // is present as key in the map.
@@ -78,6 +133,6 @@ func ParseJsonByFilename(inFileName string) (map[string]bool, error) {
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	stringset, err = ParseJsonByBytes(byteValue)
+	stringset, err = IncludesFromJsonByBytes(byteValue)
 	return stringset, err
 }
