@@ -85,7 +85,7 @@ func (p *Project) GenerateIncludes() error {
 func Parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 
-	unfiltered, err := cc2ce.ParseJsonByFilename(installarea(p))
+	unfiltered, err := cc2ce.ParseJsonByFilename(installarea(p), false)
 	if err != nil {
 		return stringset, err
 	}

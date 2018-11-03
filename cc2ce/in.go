@@ -27,9 +27,12 @@ import (
 )
 
 type translationunit struct {
-	Builddir string `json:"directory"`
-	Command  string `json:"command"`
-	File     string `json:"file"`
+	Builddir string `json:"directory"` // working dir, necessary for relative paths
+	Command  string `json:"command"`   // contains the compiler call
+	File     string `json:"file"`      // input file
+
+	Arguments []string `json:"arguments"` // alternative to 'command' (list of strings rather than string) FIXME: handle
+	Output    string   `json:"output"`    // optional, unused
 }
 
 // IncludesFromJsonByBytes parses json provided as []byte (and is called by
@@ -39,7 +42,11 @@ type translationunit struct {
 // The return is a quasi-'set' of strings: a map string -> bool.  All bools are
 // true. An include path is present in the compile_commands if and only if it
 // is present as key in the map.
-func IncludesFromJsonByBytes(inFileContent []byte) (map[string]bool, error) {
+//
+// When the turnAbsolute option is true, relative paths get turned into
+// absolute paths by using the specified working directory from the json.
+// Otherwise, no path manipulation is done.
+func IncludesFromJsonByBytes(inFileContent []byte, turnAbsolute bool) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 	var db []translationunit
 	json.Unmarshal(inFileContent, &db)
@@ -47,14 +54,19 @@ func IncludesFromJsonByBytes(inFileContent []byte) (map[string]bool, error) {
 	for _, tu := range db {
 		words := strings.Fields(tu.Command)
 		for j, w := range words {
-			var inc string
+			inc := ""
 			if w[0:2] == "-I" {
 				inc = w[2:len(w)]
 			}
 			if w == "-isystem" {
 				inc = words[j+1]
 			}
-			stringset[inc] = true
+			if inc != "" {
+				if !filepath.IsAbs(inc) && turnAbsolute {
+					inc = filepath.Join(tu.Builddir, inc)
+				}
+				stringset[inc] = true
+			}
 		}
 	}
 	return stringset, nil
@@ -120,7 +132,11 @@ func OptionsFromJsonByBytes(inFileContent []byte) (string, error) {
 // The return is a quasi-'set' of strings: a map string -> bool.  All bools are
 // true. An include path is present in the compile_commands if and only if it
 // is present as key in the map.
-func ParseJsonByFilename(inFileName string) (map[string]bool, error) {
+//
+// When the turnAbsolute option is true, relative paths get turned into
+// absolute paths by using the specified working directory from the json.
+// Otherwise, no path manipulation is done.
+func ParseJsonByFilename(inFileName string, turnAbsolute bool) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 
 	if !strings.HasSuffix(inFileName, "compile_commands.json") {
@@ -133,6 +149,6 @@ func ParseJsonByFilename(inFileName string) (map[string]bool, error) {
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	stringset, err = IncludesFromJsonByBytes(byteValue)
+	stringset, err = IncludesFromJsonByBytes(byteValue, turnAbsolute)
 	return stringset, err
 }

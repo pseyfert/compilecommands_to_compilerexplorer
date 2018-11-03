@@ -29,7 +29,7 @@ func main() {
 	flag.StringVar(&lib.LibraryVersion, "version", "master", "version information to display in CE")
 	flag.Parse()
 	var err error
-	lib.Paths, err = cc2ce.ParseJsonByFilename(dbpath)
+	lib.Paths, err = cc2ce.ParseJsonByFilename(dbpath, true)
 	if err != nil {
 		log.Printf("Could not read compile_commands.json: %v", err)
 		os.Exit(1)
