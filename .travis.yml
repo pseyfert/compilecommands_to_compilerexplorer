@@ -1,0 +1,19 @@
+# mostly taken from github.com/robustirc/bridge
+sudo: false
+
+language: go
+
+script:
+  # Check whether files are syntactically correct.
+  - "gofmt -l $(find . -name '*.go' | tr '\\n' ' ') >/dev/null"
+  # Check whether files were not gofmt'ed.
+  - "gosrc=$(find . -name '*.go' | tr '\\n' ' '); [ $(gofmt -l $gosrc 2>&- | wc -l) -eq 0 ] || (echo 'gofmt was not run on these files:'; gofmt -l $gosrc 2>&-; false)"
+  # Run go vet for further checking.
+  - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce
+  - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce4lhcb
+  - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/cli
+  - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/lb-CE-collect-nightlies
+  - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/lb-CE-single-nightly-project
+  - go vet github.com/pseyfert/go-list-root-trees/root-ls-tree
+  # Run tests (output validation)
+  #- go test github.com/pseyfert/.....
