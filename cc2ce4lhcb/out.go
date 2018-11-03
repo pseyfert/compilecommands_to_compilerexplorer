@@ -35,7 +35,7 @@ func Create(ps []Project) {
 
 	f, err := write.TempFile("", "./c++.local.properties")
 	if err != nil {
-		log.Print("Couldn't create tempfile for output writing: %v", err)
+		log.Printf("Couldn't create tempfile for output writing: %v", err)
 		os.Exit(5)
 	}
 	defer f.Cleanup()
