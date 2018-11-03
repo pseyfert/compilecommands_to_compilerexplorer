@@ -14,6 +14,5 @@ script:
   - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/cli
   - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/lb-CE-collect-nightlies
   - go vet github.com/pseyfert/compilecommands_to_compilerexplorer/lb-CE-single-nightly-project
-  - go vet github.com/pseyfert/go-list-root-trees/root-ls-tree
   # Run tests (output validation)
   #- go test github.com/pseyfert/.....
