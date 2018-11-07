@@ -18,7 +18,7 @@ import (
 	"os"
 	"strings"
 
-	write "github.com/google/go-write"
+	write "github.com/google/renameio"
 	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce"
 )
 

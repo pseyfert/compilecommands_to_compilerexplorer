@@ -156,7 +156,7 @@ result in an invalid configuration at the moment.)
 
 One last aspect I realised when browsing through twitter is, that the config
 file writing should better be atomic (such that Compiler Explorer only ever
-sees complete files). I use [go-write](https://github.com/google/go-write) for
+sees complete files). I use [renameio-write](https://github.com/google/renameio) for
 that purpose.
 
 ### Compilers

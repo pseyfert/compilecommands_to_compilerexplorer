@@ -17,7 +17,7 @@ import (
 	"log"
 	"strings"
 
-	write "github.com/google/go-write"
+	write "github.com/google/renameio"
 )
 
 type Library struct {
