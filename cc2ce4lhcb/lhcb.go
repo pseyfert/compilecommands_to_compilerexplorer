@@ -37,7 +37,7 @@ import (
 func Filter_LHCb_includes(unfiltered map[string]bool, p Project) (map[string]bool, error) {
 	filtered := make(map[string]bool)
 	// add the deployed install area of the current project
-	filtered[filepath.Join(installarea(p), "/include")] = true
+	filtered[filepath.Join(Installarea(p), "/include")] = true
 	for inc, boolean := range unfiltered {
 		if !boolean {
 			// this is unexpected input
@@ -62,7 +62,7 @@ func Filter_LHCb_includes(unfiltered map[string]bool, p Project) (map[string]boo
 	return filtered, nil
 }
 
-func installarea(p Project) string {
+func Installarea(p Project) string {
 	return filepath.Join(
 		Nightlyroot,
 		p.Slot,
@@ -85,7 +85,7 @@ func (p *Project) GenerateIncludes() error {
 func Parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bool, error) {
 	stringset := make(map[string]bool)
 
-	unfiltered, err := cc2ce.ParseJsonByFilename(installarea(p), false)
+	unfiltered, err := cc2ce.ParseJsonByFilename(Installarea(p), false)
 	if err != nil {
 		return stringset, err
 	}
