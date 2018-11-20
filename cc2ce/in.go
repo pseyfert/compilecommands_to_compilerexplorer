@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-type translationunit struct {
+type JsonTranslationunit struct {
 	Builddir string `json:"directory"` // working dir, necessary for relative paths
 	Command  string `json:"command"`   // contains the compiler call
 	File     string `json:"file"`      // input file
@@ -48,7 +48,7 @@ type translationunit struct {
 // Otherwise, no path manipulation is done.
 func IncludesFromJsonByBytes(inFileContent []byte, turnAbsolute bool) (map[string]bool, error) {
 	stringset := make(map[string]bool)
-	var db []translationunit
+	var db []JsonTranslationunit
 	json.Unmarshal(inFileContent, &db)
 
 	for _, tu := range db {
@@ -81,7 +81,7 @@ func IncludesFromJsonByBytes(inFileContent []byte, turnAbsolute bool) (map[strin
 // projects.
 func OptionsFromJsonByBytes(inFileContent []byte) (string, error) {
 	var b bytes.Buffer
-	var db []translationunit
+	var db []JsonTranslationunit
 	json.Unmarshal(inFileContent, &db)
 
 	for _, tu := range db {

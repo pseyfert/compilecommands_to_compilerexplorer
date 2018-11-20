@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	days := []string{"Today", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+	days := []string{"latest", "Today", "Yesterday", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
 	top_projects := []string{"Brunel", "Gaudi"}
 	versions := []string{"HEAD", "master"}

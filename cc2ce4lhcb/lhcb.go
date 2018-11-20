@@ -24,7 +24,7 @@ import (
 	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce"
 )
 
-// Filter_LHCb_includes removes or manipulates include paths from a
+// Filter_LHCb_public_includes removes or manipulates include paths from a
 // map[string]bool that need special treatment in the setup of the LHCb build
 // servers:
 //  * Include paths from /cvmfs get accepted
@@ -34,14 +34,19 @@ import (
 //  * Include paths from the current workspace that look like install
 //    directories of dependencies (built by the same slot) get manipulated to
 //    their expected cvmfs deployment destination
-func Filter_LHCb_includes(unfiltered map[string]bool, p Project) (map[string]bool, error) {
+func Filter_LHCb_public_includes(unfiltered map[string]bool, p Project) (map[string]bool, error) {
+	filtered, err := Filter_LHCb_includes(unfiltered, p, false)
+	return filtered, err
+}
+
+func Filter_LHCb_includes(unfiltered map[string]bool, p Project, keep_local_includes bool) (map[string]bool, error) {
 	filtered := make(map[string]bool)
 	// add the deployed install area of the current project
 	filtered[filepath.Join(Installarea(p), "/include")] = true
 	for inc, boolean := range unfiltered {
 		if !boolean {
 			// this is unexpected input
-			return make(map[string]bool), fmt.Errorf("Filter_LHCb_includes unexpected input: false flagged include path")
+			return make(map[string]bool), fmt.Errorf("Filter_LHCb_all_includes unexpected input: false flagged include path")
 		}
 		if strings.HasPrefix(inc, "/cvmfs") {
 			// accept paths from cvmfs
@@ -53,7 +58,10 @@ func Filter_LHCb_includes(unfiltered map[string]bool, p Project) (map[string]boo
 			// where ... looks like GAUDI/GAUDI_master/InstallArea/x86_64+avx2+fma-centos7-gcc7-opt/include
 			filtered[strings.Replace(inc, "/workspace/build/", filepath.Join(Nightlyroot, p.Slot, p.Day)+"/", 1)] = true
 		} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.Project, p.Project+"_"+p.Version)) {
-			// should be the source of the current project and is skipped
+			// should be the source of the current project
+			if keep_local_includes {
+				filtered[strings.Replace(inc, "/workspace/build/", filepath.Join(Nightlyroot, p.Slot, p.Day)+"/", 1)] = true
+			}
 		} else if inc != "" {
 			// includes which are none of the above are unexpected
 			return make(map[string]bool), fmt.Errorf("Unexpected include path for LHCb nightly treatment: %s", inc)
@@ -90,7 +98,7 @@ func Parse_and_generate(p Project, nightlyroot, cmtconfig string) (map[string]bo
 		return stringset, err
 	}
 
-	filtered, err := Filter_LHCb_includes(unfiltered, p)
+	filtered, err := Filter_LHCb_public_includes(unfiltered, p)
 	if err != nil {
 		return stringset, err
 	}
