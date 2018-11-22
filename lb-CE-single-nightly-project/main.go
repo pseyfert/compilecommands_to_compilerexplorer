@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce"
 	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce4lhcb"
@@ -32,7 +31,6 @@ func main() {
 	flag.StringVar(&cc2ce4lhcb.Cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.Parse()
-	p.Project = strings.ToUpper(p.Project)
 	incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
 	if err != nil {
 		log.Printf("couldn't read json: %v", err)

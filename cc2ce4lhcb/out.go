@@ -29,7 +29,7 @@ func Create(ps []Project) {
 	}
 	unique_project_names := make(map[string]bool)
 	for _, p := range ps {
-		unique_project_names[strings.ToLower(p.Project)] = true
+		unique_project_names[p.CE_config_name()] = true
 	}
 	project_names := cc2ce.ColonSeparateMap(unique_project_names)
 
@@ -58,35 +58,35 @@ func Create(ps []Project) {
 	setup_project_names := make(map[string]bool)
 
 	for i, p := range ps {
-		if _, found := setup_project_names[p.Project]; !found {
+		if _, found := setup_project_names[p.CE_config_name()]; !found {
 			var versions []string
 			for j := i; j < len(ps); j++ {
-				if ps[j].Project == p.Project {
+				if ps[j].CE_config_name() == p.CE_config_name() {
 					versions = append(versions, ps[j].ConfVersion())
 				}
 			}
-			if _, err := fmt.Fprintf(f, "libs.%s.name=%s\n", strings.ToLower(p.Project), strings.ToLower(p.Project)); err != nil {
+			if _, err := fmt.Fprintf(f, "libs.%s.name=%s\n", p.CE_config_name(), p.CE_config_name()); err != nil {
 				log.Printf("writing project name for %s to c++.local.properties: %v", p.Project, err)
 				os.Exit(5)
 			}
-			if _, err := fmt.Fprintf(f, "libs.%s.url=https://lhcb-nightlies.cern.ch/nightly/summary/\n", strings.ToLower(p.Project)); err != nil {
+			if _, err := fmt.Fprintf(f, "libs.%s.url=https://lhcb-nightlies.cern.ch/nightly/summary/\n", p.CE_config_name()); err != nil {
 				log.Printf("writing project url for %s to c++.local.properties: %v", p.Project, err)
 				os.Exit(5)
 			}
 
 			output_versions := strings.Join(versions, ":")
-			if _, err := fmt.Fprintf(f, "libs.%s.versions=%s\n", strings.ToLower(p.Project), output_versions); err != nil {
-				log.Printf("writing project %s versions %v to c++.local.properties: %v", strings.ToLower(p.Project), output_versions, err)
+			if _, err := fmt.Fprintf(f, "libs.%s.versions=%s\n", p.CE_config_name(), output_versions); err != nil {
+				log.Printf("writing project %s versions %v to c++.local.properties: %v", p.Project, output_versions, err)
 				os.Exit(5)
 			}
 
 		}
-		setup_project_names[p.Project] = true
+		setup_project_names[p.CE_config_name()] = true
 	}
 
 	for _, p := range ps {
 		pr := func(s1, s2 string) {
-			if _, err := fmt.Fprintf(f, "libs.%s.versions.%s.%s=%s\n", strings.ToLower(p.Project), p.ConfVersion(), s1, s2); err != nil {
+			if _, err := fmt.Fprintf(f, "libs.%s.versions.%s.%s=%s\n", p.CE_config_name(), p.ConfVersion(), s1, s2); err != nil {
 				log.Printf("adding configuration %s=%s to %s/%s: %v", s1, s2, p.Project, p.ConfVersion(), err)
 				os.Exit(5)
 			}

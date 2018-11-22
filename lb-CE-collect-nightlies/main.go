@@ -16,7 +16,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce4lhcb"
 )
@@ -39,7 +38,7 @@ func main() {
 					var p cc2ce4lhcb.Project
 					p.Slot = slot
 					p.Day = day
-					p.Project = strings.ToUpper(top_project)
+					p.Project = top_project
 					p.Version = version
 					incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
 					if err != nil {

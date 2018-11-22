@@ -56,11 +56,11 @@ func Filter_LHCb_includes(unfiltered map[string]bool, p Project, keep_local_incl
 			// replace /workspace/build/... by something like
 			// /cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/...
 			// where ... looks like GAUDI/GAUDI_master/InstallArea/x86_64+avx2+fma-centos7-gcc7-opt/include
-			filtered[strings.Replace(inc, "/workspace/build/", filepath.Join(Nightlyroot, p.Slot, p.Day)+"/", 1)] = true
-		} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.Project, p.Project+"_"+p.Version)) {
+			filtered[strings.Replace(inc, "/workspace/build/", p.Buildarea()+"/", 1)] = true
+		} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.ProjectareaInBuildarea())) {
 			// should be the source of the current project
 			if keep_local_includes {
-				filtered[strings.Replace(inc, "/workspace/build/", filepath.Join(Nightlyroot, p.Slot, p.Day)+"/", 1)] = true
+				filtered[strings.Replace(inc, "/workspace/build/", p.Buildarea()+"/", 1)] = true
 			}
 		} else if inc != "" {
 			// includes which are none of the above are unexpected
@@ -70,13 +70,36 @@ func Filter_LHCb_includes(unfiltered map[string]bool, p Project, keep_local_incl
 	return filtered, nil
 }
 
+func (p *Project) CE_config_name() string {
+	return strings.ToLower(p.Project)
+}
+
+func (p *Project) Buildarea() string {
+	return filepath.Join(
+		Nightlyroot,
+		p.Slot,
+		p.Day)
+}
+
+func (p *Project) ProjectareaInBuildarea() string {
+	return filepath.Join(
+		strings.ToUpper(p.Project),
+		strings.ToUpper(p.Project)+"_"+p.Version)
+}
+
+func (p *Project) Projectarea() string {
+	return filepath.Join(
+		p.Buildarea(),
+		p.ProjectareaInBuildarea())
+}
+
 func Installarea(p Project) string {
 	return filepath.Join(
 		Nightlyroot,
 		p.Slot,
 		p.Day,
-		p.Project,
-		p.Project+"_"+p.Version,
+		strings.ToUpper(p.Project),
+		strings.ToUpper(p.Project)+"_"+p.Version,
 		"InstallArea",
 		Cmtconfig)
 }
