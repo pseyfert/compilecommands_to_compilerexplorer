@@ -47,10 +47,17 @@ type JsonTranslationunit struct {
 // absolute paths by using the specified working directory from the json.
 // Otherwise, no path manipulation is done.
 func IncludesFromJsonByBytes(inFileContent []byte, turnAbsolute bool) (map[string]bool, error) {
-	stringset := make(map[string]bool)
-	var db []JsonTranslationunit
-	json.Unmarshal(inFileContent, &db)
+	db, err := JsonTUsByBytes(inFileContent)
 
+	if nil != err {
+		return make(map[string]bool), err
+	}
+
+	return IncludesFromJsonByDB(db, turnAbsolute)
+}
+
+func IncludesFromJsonByDB(db []JsonTranslationunit, turnAbsolute bool) (map[string]bool, error) {
+	stringset := make(map[string]bool)
 	for _, tu := range db {
 		words := strings.Fields(tu.Command)
 		for j, w := range words {
@@ -80,10 +87,16 @@ func IncludesFromJsonByBytes(inFileContent []byte, turnAbsolute bool) (map[strin
 // The -D options are filtered based on what I found not useful in LHCb
 // projects.
 func OptionsFromJsonByBytes(inFileContent []byte) (string, error) {
-	var b bytes.Buffer
-	var db []JsonTranslationunit
-	json.Unmarshal(inFileContent, &db)
+	db, err := JsonTUsByBytes(inFileContent)
+	if nil != err {
+		return "", err
+	}
+	optionsstring, err := OptionsFromJsonByDB(db)
+	return optionsstring, err
+}
 
+func OptionsFromJsonByDB(db []JsonTranslationunit) (string, error) {
+	var b bytes.Buffer
 	for _, tu := range db {
 		words := strings.Fields(tu.Command)
 		for _, w := range words {
@@ -138,17 +151,40 @@ func OptionsFromJsonByBytes(inFileContent []byte) (string, error) {
 // Otherwise, no path manipulation is done.
 func ParseJsonByFilename(inFileName string, turnAbsolute bool) (map[string]bool, error) {
 	stringset := make(map[string]bool)
+	db, err := JsonTUsByFilename(inFileName)
+	if nil != err {
+		return stringset, err
+	}
+	return IncludesFromJsonByDB(db, turnAbsolute)
+}
 
+func BytesFromFilename(inFileName string) ([]byte, error) {
 	if !strings.HasSuffix(inFileName, "compile_commands.json") {
 		inFileName = filepath.Join(inFileName, "compile_commands.json")
 	}
 	jsonFile, err := os.Open(inFileName)
 	if err != nil {
-		return stringset, err
+		retval := make([]byte, 0)
+		return retval, err
 	}
 	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, err := ioutil.ReadAll(jsonFile)
 
-	stringset, err = IncludesFromJsonByBytes(byteValue, turnAbsolute)
-	return stringset, err
+	return byteValue, err
+}
+
+func JsonTUsByBytes(inFileContent []byte) ([]JsonTranslationunit, error) {
+	var db []JsonTranslationunit
+	json.Unmarshal(inFileContent, &db)
+
+	return db, nil
+}
+
+func JsonTUsByFilename(inFileName string) ([]JsonTranslationunit, error) {
+	inFileContent, err := BytesFromFilename(inFileName)
+	if nil != err {
+		return make([]JsonTranslationunit, 0), err
+	}
+	db, err := JsonTUsByBytes(inFileContent)
+	return db, err
 }
