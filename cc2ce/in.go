@@ -103,9 +103,9 @@ func OptionsFromJsonByDB(db []JsonTranslationunit) (string, error) {
 			if strings.HasPrefix(w, "-D") {
 				if strings.HasSuffix(w, "EXPORTS") {
 					continue
-				} else if w == "-DPACKAGE_NAME" {
+				} else if strings.HasPrefix(w, "-DPACKAGE_NAME") {
 					b.WriteString("-DPACKAGE_NAME=\"CompilerExplorer\"")
-				} else if w == "-DPACKAGE_VERSION" {
+				} else if strings.HasPrefix(w, "-DPACKAGE_VERSION") {
 					b.WriteString("-DPACKAGE_VERSION=\"v0r0\"")
 				} else if w == "-DGAUDI_LINKER_LIBRARY" {
 					continue
