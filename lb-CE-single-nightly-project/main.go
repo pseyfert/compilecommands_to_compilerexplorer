@@ -24,12 +24,14 @@ import (
 
 func main() {
 	var p cc2ce4lhcb.Project
+	var conffilename string
 	flag.StringVar(&p.Slot, "slot", "lhcb-head", "nightlies slot (i.e. directory in /cvmfs/lhcbdev.cern.ch/nightlies/)")
 	flag.StringVar(&p.Day, "day", "Today", "day/buildID (i.e. subdirectory, such as 'Today', 'Mon', or '2032')")
 	flag.StringVar(&p.Project, "project", "Brunel", "project (such as Rec, Brunel, LHCb, Lbcom)")
 	flag.StringVar(&p.Version, "version", "HEAD", "version (i.e. the stuff after the underscore like HEAD or 2016-patches)")
 	flag.StringVar(&cc2ce4lhcb.Cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
+	flag.StringVar(&conffilename, "o", "./c++.local.properties", "output filename")
 	flag.Parse()
 	incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
 	if err != nil {
@@ -40,5 +42,5 @@ func main() {
 	p.IncludeMap = incs
 
 	fmt.Println(cc2ce.ColonSeparateMap(p.IncludeMap))
-	cc2ce4lhcb.Create([]cc2ce4lhcb.Project{p})
+	cc2ce4lhcb.Create([]cc2ce4lhcb.Project{p}, conffilename)
 }

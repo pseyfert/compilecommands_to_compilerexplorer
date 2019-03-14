@@ -22,7 +22,7 @@ import (
 	"github.com/pseyfert/compilecommands_to_compilerexplorer/cc2ce"
 )
 
-func Create(ps []Project) {
+func Create(ps []Project, outname string) {
 	if len(ps) == 0 {
 		log.Print("no project?")
 		os.Exit(8)
@@ -33,7 +33,7 @@ func Create(ps []Project) {
 	}
 	project_names := cc2ce.ColonSeparateMap(unique_project_names)
 
-	f, err := write.TempFile("", "./c++.local.properties")
+	f, err := write.TempFile("", outname)
 	if err != nil {
 		log.Printf("Couldn't create tempfile for output writing: %v", err)
 		os.Exit(5)
@@ -41,7 +41,7 @@ func Create(ps []Project) {
 	defer f.Cleanup()
 
 	if _, err := fmt.Fprintf(f, "libs=%s\n", project_names); err != nil {
-		log.Printf("assembling projects %v to c++.local.properties: %v", project_names, err)
+		log.Printf("assembling projects %v to %s: %v", project_names, outname, err)
 		os.Exit(5)
 	}
 
@@ -66,17 +66,17 @@ func Create(ps []Project) {
 				}
 			}
 			if _, err := fmt.Fprintf(f, "libs.%s.name=%s\n", p.CE_config_name(), p.CE_config_name()); err != nil {
-				log.Printf("writing project name for %s to c++.local.properties: %v", p.Project, err)
+				log.Printf("writing project name for %s to %s: %v", p.Project, outname, err)
 				os.Exit(5)
 			}
 			if _, err := fmt.Fprintf(f, "libs.%s.url=https://lhcb-nightlies.cern.ch/nightly/summary/\n", p.CE_config_name()); err != nil {
-				log.Printf("writing project url for %s to c++.local.properties: %v", p.Project, err)
+				log.Printf("writing project url for %s to %s: %v", p.Project, outname, err)
 				os.Exit(5)
 			}
 
 			output_versions := strings.Join(versions, ":")
 			if _, err := fmt.Fprintf(f, "libs.%s.versions=%s\n", p.CE_config_name(), output_versions); err != nil {
-				log.Printf("writing project %s versions %v to c++.local.properties: %v", p.Project, output_versions, err)
+				log.Printf("writing project %s versions %v to %s: %v", p.Project, output_versions, outname, err)
 				os.Exit(5)
 			}
 
@@ -95,7 +95,7 @@ func Create(ps []Project) {
 		pr("path", cc2ce.ColonSeparateMap(p.IncludeMap))
 	}
 	if err := f.CloseAtomicallyReplace(); err != nil {
-		log.Printf("writing c++.local.properties: %v", err)
+		log.Printf("writing %s: %v", outname, err)
 		os.Exit(6)
 	}
 }
