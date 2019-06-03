@@ -82,9 +82,7 @@ func (p *Project) Buildarea() string {
 }
 
 func (p *Project) ProjectareaInBuildarea() string {
-	return filepath.Join(
-		strings.ToUpper(p.Project),
-		strings.ToUpper(p.Project)+"_"+p.Version)
+	return p.Project
 }
 
 func (p *Project) Projectarea() string {
@@ -98,8 +96,7 @@ func Installarea(p Project) string {
 		Nightlyroot,
 		p.Slot,
 		p.Day,
-		strings.ToUpper(p.Project),
-		strings.ToUpper(p.Project)+"_"+p.Version,
+		p.Project,
 		"InstallArea",
 		Cmtconfig)
 }
