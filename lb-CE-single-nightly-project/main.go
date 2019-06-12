@@ -32,6 +32,7 @@ func main() {
 	flag.StringVar(&cc2ce4lhcb.Cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc7-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.StringVar(&conffilename, "o", "./c++.local.properties", "output filename")
+	flag.BoolVar(&cc2ce4lhcb.Released, "R", false, "look for released projects")
 	flag.Parse()
 	incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
 	if err != nil {

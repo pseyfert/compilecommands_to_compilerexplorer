@@ -57,8 +57,13 @@ func Filter_LHCb_includes(unfiltered map[string]bool, p Project, keep_local_incl
 			// /cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/...
 			// where ... looks like GAUDI/GAUDI_master/InstallArea/x86_64+avx2+fma-centos7-gcc7-opt/include
 			filtered[strings.Replace(inc, "/workspace/build/", p.Buildarea()+"/", 1)] = true
-		} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.ProjectareaInBuildarea())) {
-			// should be the source of the current project
+		} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.ProjectareaInBuildarea_new())) {
+			// should be the source of the current project (in a new - i.e. nightlies - build area)
+			if keep_local_includes {
+				filtered[strings.Replace(inc, "/workspace/build/", p.Buildarea()+"/", 1)] = true
+			}
+		} else if strings.HasPrefix(inc, filepath.Join("/workspace/build", p.ProjectareaInBuildarea_old())) {
+			// should be the source of the current project (in an old - i.e. old released - build area)
 			if keep_local_includes {
 				filtered[strings.Replace(inc, "/workspace/build/", p.Buildarea()+"/", 1)] = true
 			}
@@ -75,23 +80,34 @@ func (p *Project) CE_config_name() string {
 }
 
 func (p *Project) Buildarea() string {
+	if Released {
+		return "/cvmfs/lhcb.cern.ch/lib/lhcb"
+	}
 	return filepath.Join(
 		Nightlyroot,
 		p.Slot,
 		p.Day)
 }
 
-func (p *Project) ProjectareaInBuildarea() string {
+func (p *Project) ProjectareaInBuildarea_new() string {
 	return p.Project
 }
 
-func (p *Project) Projectarea() string {
+func (p *Project) ProjectareaInBuildarea_old() string {
 	return filepath.Join(
-		p.Buildarea(),
-		p.ProjectareaInBuildarea())
+		strings.ToUpper(p.Project),
+		strings.ToUpper(p.Project)+"_"+p.Version)
 }
 
 func Installarea(p Project) string {
+	if Released {
+		return filepath.Join(
+			"/cvmfs/lhcb.cern.ch/lib/lhcb",
+			strings.ToUpper(p.Project),
+			strings.ToUpper(p.Project)+"_"+p.Version,
+			"InstallArea",
+			Cmtconfig)
+	}
 	return filepath.Join(
 		Nightlyroot,
 		p.Slot,
@@ -152,3 +168,5 @@ var Cmtconfig string
 
 // The installation of nightlies, i.e. "/cvmfs/lhcbdev.cern.ch/nightlies"
 var Nightlyroot string
+
+var Released bool
