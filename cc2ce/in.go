@@ -86,16 +86,16 @@ func IncludesFromJsonByDB(db []JsonTranslationunit, turnAbsolute bool) (map[stri
 //
 // The -D options are filtered based on what I found not useful in LHCb
 // projects.
-func OptionsFromJsonByBytes(inFileContent []byte) (string, error) {
+func OptionsFromJsonByBytes(inFileContent []byte, skippackagenameversion bool) (string, error) {
 	db, err := JsonTUsByBytes(inFileContent)
 	if nil != err {
 		return "", err
 	}
-	optionsstring, err := OptionsFromJsonByDB(db)
+	optionsstring, err := OptionsFromJsonByDB(db, skippackagenameversion)
 	return optionsstring, err
 }
 
-func OptionsFromJsonByDB(db []JsonTranslationunit) (string, error) {
+func OptionsFromJsonByDB(db []JsonTranslationunit, skippackagenameversion bool) (string, error) {
 	var b bytes.Buffer
 	for _, tu := range db {
 		words := strings.Fields(tu.Command)
@@ -104,9 +104,13 @@ func OptionsFromJsonByDB(db []JsonTranslationunit) (string, error) {
 				if strings.HasSuffix(w, "EXPORTS") {
 					continue
 				} else if strings.HasPrefix(w, "-DPACKAGE_NAME") {
-					b.WriteString("-DPACKAGE_NAME=\"CompilerExplorer\"")
+					if !skippackagenameversion {
+						b.WriteString("-DPACKAGE_NAME=\"CompilerExplorer\"")
+					}
 				} else if strings.HasPrefix(w, "-DPACKAGE_VERSION") {
-					b.WriteString("-DPACKAGE_VERSION=\"v0r0\"")
+					if !skippackagenameversion {
+						b.WriteString("-DPACKAGE_VERSION=\"v0r0\"")
+					}
 				} else if w == "-DGAUDI_LINKER_LIBRARY" {
 					continue
 				} else {
