@@ -24,7 +24,6 @@ func main() {
 	days := []string{"latest", "Today", "Yesterday", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
 	top_projects := []string{"Brunel", "Gaudi"}
-	versions := []string{"HEAD", "master"}
 	var conffilename string
 	flag.StringVar(&cc2ce4lhcb.Cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc8-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
@@ -36,26 +35,23 @@ func main() {
 	for _, slot := range slots {
 		for _, day := range days {
 			for _, top_project := range top_projects {
-				for _, version := range versions {
-					var p cc2ce4lhcb.Project
-					p.Slot = slot
-					p.Day = day
-					p.Project = top_project
-					p.Version = version
-					incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
-					if err != nil {
-						if os.IsNotExist(err) {
-							log.Printf("configuration doesn't exist: %v", err)
-							// this slot doesn't exist on cvmfs (not set up for publication, or build failed)
-							// just skip
-						} else {
-							log.Printf("%v", err)
-							os.Exit(7)
-						}
+				var p cc2ce4lhcb.Project
+				p.Slot = slot
+				p.Day = day
+				p.Project = top_project
+				incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
+				if err != nil {
+					if os.IsNotExist(err) {
+						log.Printf("configuration doesn't exist: %v", err)
+						// this slot doesn't exist on cvmfs (not set up for publication, or build failed)
+						// just skip
 					} else {
-						p.IncludeMap = incs
-						projects = append(projects, p)
+						log.Printf("%v", err)
+						os.Exit(7)
 					}
+				} else {
+					p.IncludeMap = incs
+					projects = append(projects, p)
 				}
 			}
 		}

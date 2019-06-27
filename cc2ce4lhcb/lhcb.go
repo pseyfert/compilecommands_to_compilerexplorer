@@ -160,7 +160,11 @@ type Project struct {
 }
 
 func (p *Project) ConfVersion() string {
-	return p.Slot + "/" + p.Day + "/" + p.Version
+	if Released {
+		return p.Version
+	} else {
+		return p.Slot + "/" + p.Day
+	}
 }
 
 // The current platform, e.g. "x86_64-centos7-gcc7-opt"
