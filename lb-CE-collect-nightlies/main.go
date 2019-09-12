@@ -22,39 +22,50 @@ import (
 
 func main() {
 	days := []string{"latest", "Today", "Yesterday", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
-	top_projects := []string{"Brunel", "Gaudi"}
+	top_projects := []string{"Brunel", "Gaudi", "Rec", "LHCb"}
 	var conffilename string
-	flag.StringVar(&cc2ce4lhcb.Cmtconfig, "cmtconfig", "x86_64+avx2+fma-centos7-gcc8-opt", "platform, like x86_64+avx2+fma-centos7-gcc7-opt or x86_64-centos7-gcc7-opt")
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.StringVar(&conffilename, "o", "./c++.local.properties", "output filename")
 	flag.Parse()
 
 	projects := []cc2ce4lhcb.Project{}
 
-	for _, slot := range slots {
-		for _, day := range days {
-			for _, top_project := range top_projects {
-				var p cc2ce4lhcb.Project
-				p.Slot = slot
-				p.Day = day
-				p.Project = top_project
-				incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
-				if err != nil {
-					if os.IsNotExist(err) {
-						log.Printf("configuration doesn't exist: %v", err)
-						// this slot doesn't exist on cvmfs (not set up for publication, or build failed)
-						// just skip
+	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
+	cc2ce4lhcb.Cmtconfig = "x86_64+avx2+fma-centos7-gcc8-opt"
+
+	looper := func() {
+		for _, slot := range slots {
+			for _, day := range days {
+				for _, top_project := range top_projects {
+					var p cc2ce4lhcb.Project
+					p.Slot = slot
+					p.Day = day
+					p.Project = top_project
+					incs, err := cc2ce4lhcb.Parse_and_generate(p, cc2ce4lhcb.Nightlyroot, cc2ce4lhcb.Cmtconfig)
+					if err != nil {
+						if os.IsNotExist(err) {
+							log.Printf("configuration doesn't exist: %v", err)
+							// this slot doesn't exist on cvmfs (not set up for publication, or build failed)
+							// just skip
+						} else {
+							log.Printf("%v", err)
+							os.Exit(7)
+						}
 					} else {
-						log.Printf("%v", err)
-						os.Exit(7)
+						p.IncludeMap = incs
+						projects = append(projects, p)
 					}
-				} else {
-					p.IncludeMap = incs
-					projects = append(projects, p)
 				}
 			}
 		}
 	}
+
+	looper()
+
+	slots = []string{"lhcb-lcg-dev3", "lhcb-lcg-dev4"}
+	cc2ce4lhcb.Cmtconfig = "x86_64-centos7-gcc8-opt"
+
+	looper()
+
 	cc2ce4lhcb.Create(projects, conffilename)
 }
