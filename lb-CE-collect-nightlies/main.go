@@ -22,7 +22,7 @@ import (
 
 func main() {
 	days := []string{"latest", "Today", "Yesterday", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-	top_projects := []string{"Brunel", "Gaudi", "Rec", "LHCb"}
+	top_projects := []string{"Brunel", "Gaudi", "Rec", "LHCb", "Phys"}
 	var conffilename string
 	flag.StringVar(&cc2ce4lhcb.Nightlyroot, "nightly-base", "/cvmfs/lhcbdev.cern.ch/nightlies/", "add the specified directory to the nightly builds search path")
 	flag.StringVar(&conffilename, "o", "./c++.local.properties", "output filename")
