@@ -62,7 +62,7 @@ func main() {
 
 	looper()
 
-	slots = []string{"lhcb-lcg-dev3", "lhcb-lcg-dev4", "lhcb-tdr-te	st"}
+	slots = []string{"lhcb-lcg-dev3", "lhcb-lcg-dev4", "lhcb-tdr-test"}
 	cc2ce4lhcb.Cmtconfig = "x86_64-centos7-gcc9-opt"
 
 	looper()
