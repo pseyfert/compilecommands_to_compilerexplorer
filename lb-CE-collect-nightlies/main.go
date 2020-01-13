@@ -31,7 +31,7 @@ func main() {
 	projects := []cc2ce4lhcb.Project{}
 
 	slots := []string{"lhcb-head", "lhcb-gaudi-head"}
-	cc2ce4lhcb.Cmtconfig = "x86_64+avx2+fma-centos7-gcc8-opt"
+	cc2ce4lhcb.Cmtconfig = "x86_64+avx2+fma-centos7-gcc9-opt"
 
 	looper := func() {
 		for _, slot := range slots {
@@ -62,8 +62,8 @@ func main() {
 
 	looper()
 
-	slots = []string{"lhcb-lcg-dev3", "lhcb-lcg-dev4"}
-	cc2ce4lhcb.Cmtconfig = "x86_64-centos7-gcc8-opt"
+	slots = []string{"lhcb-lcg-dev3", "lhcb-lcg-dev4", "lhcb-tdr-te	st"}
+	cc2ce4lhcb.Cmtconfig = "x86_64-centos7-gcc9-opt"
 
 	looper()
 
