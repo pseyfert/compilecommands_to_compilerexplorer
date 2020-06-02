@@ -99,7 +99,7 @@ func main() {
 		os.Exit(5)
 	}
 	if err := f.CloseAtomicallyReplace(); err != nil {
-		log.Printf("writing %s failed: %v", ofname, err)
+		log.Printf("writing %s failed: %v", *ofname, err)
 		f.Cleanup()
 		os.Exit(5)
 	}
@@ -121,25 +121,25 @@ func WriteConfig(confs []CompilerConfig, f *write.PendingFile) error {
 			b.WriteString(c.ConfName)
 		}
 		if _, err := fmt.Fprintf(f, "group.autogen.compilers=%s\n", b.String()); err != nil {
-			log.Print("Error writing to config: %v", err)
+			log.Printf("Error writing to config: %v", err)
 			return err
 		}
 	}
 	if _, err := fmt.Fprint(f, "group.autogen.groupName=auto-generated compiler settings\n"); err != nil {
-		log.Print("Error writing to config: %v", err)
+		log.Printf("Error writing to config: %v", err)
 		return err
 	}
 	compiler_writer := func(c CompilerConfig) error {
 		if _, err := fmt.Fprintf(f, "compiler.%s.name=%s\n", c.ConfName, c.Name); err != nil {
-			log.Print("Error writing to config: %v", err)
+			log.Printf("Error writing to config: %v", err)
 			return err
 		}
 		if _, err := fmt.Fprintf(f, "compiler.%s.exe=%s\n", c.ConfName, c.Exe); err != nil {
-			log.Print("Error writing to config: %v", err)
+			log.Printf("Error writing to config: %v", err)
 			return err
 		}
 		if _, err := fmt.Fprintf(f, "compiler.%s.options=%s\n", c.ConfName, c.Options); err != nil {
-			log.Print("Error writing to config: %v", err)
+			log.Printf("Error writing to config: %v", err)
 			return err
 		}
 		return nil
