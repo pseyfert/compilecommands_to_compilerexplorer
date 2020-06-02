@@ -27,14 +27,7 @@ type Library struct {
 	Paths          map[string]bool
 }
 
-func WriteSingleLibraryAndVersion(lib Library) error {
-	f, err := write.TempFile("", "./c++.local.properties")
-	if err != nil {
-		log.Printf("Couldn't create tempfile for output writing: %v", err)
-		return err
-	}
-	defer f.Cleanup()
-
+func WriteSingleLibraryAndVersionToFile(lib Library, f *write.PendingFile) error {
 	if _, err := fmt.Fprintf(f, "libs=%s\n", strings.ToLower(lib.LibraryName)); err != nil {
 		log.Printf("writing to c++.local.properties failed: %v", err)
 		return err
@@ -48,7 +41,7 @@ func WriteSingleLibraryAndVersion(lib Library) error {
 		return nil
 	}
 
-	err = print_lib("name", lib.LibraryName)
+	err := print_lib("name", lib.LibraryName)
 	if err != nil {
 		return err
 	}
@@ -75,6 +68,20 @@ func WriteSingleLibraryAndVersion(lib Library) error {
 		return err
 	}
 	err = print_lib_ver("path", ColonSeparateMap(lib.Paths))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func WriteSingleLibraryAndVersion(lib Library) error {
+	f, err := write.TempFile("", "./c++.local.properties")
+	if err != nil {
+		log.Printf("Couldn't create tempfile for output writing: %v", err)
+		return err
+	}
+	defer f.Cleanup()
+	err = WriteSingleLibraryAndVersionToFile(lib, f)
 	if err != nil {
 		return err
 	}
