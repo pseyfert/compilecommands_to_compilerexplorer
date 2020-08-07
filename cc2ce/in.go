@@ -116,7 +116,11 @@ func OptionsFromJsonByDB(db []JsonTranslationunit, skippackagenameversion bool) 
 				} else {
 					// In the .json I often see -Dsomevar=\\\"someval\\\"
 					// For the .properties this needs to be -Dsomevar="someval" with all backslashes gone
-					b.WriteString(strings.Replace(w, "\\\\\\\"", "\"", 2))
+					// NB: in the past I used 7 backslashes instead of 3. At the time of writing this comment
+					//     I have to change 7 to 3 to fix production. I did not verify if this is a change
+					//     in go (encoding/json?). According to the previous comment, this is not a change
+					//     in cmake (observations match).
+					b.WriteString(strings.Replace(w, "\\\"", "\"", 2))
 				}
 			} else if strings.HasPrefix(w, "-p") {
 				b.WriteString(w)
