@@ -108,7 +108,7 @@ func main() {
 }
 
 func WriteConfig(confs []CompilerConfig, f *write.PendingFile) error {
-	fmt.Fprintf(f, "compilers=&autogen")
+	fmt.Fprintf(f, "compilers=&autogen\n")
 	{
 		var b bytes.Buffer
 		addseparator := false
